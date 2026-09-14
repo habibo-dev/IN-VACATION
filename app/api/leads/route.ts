@@ -1,0 +1,4 @@
+import {NextResponse} from 'next/server'
+import {z} from 'zod'
+const schema=z.object({type:z.string().min(2),name:z.string().min(2),phone:z.string().min(8),email:z.string().email().optional().or(z.literal('')),destination:z.string().optional(),date:z.string().optional(),travelers:z.string().optional(),message:z.string().optional()})
+export async function POST(req:Request){try{const data=await req.json();const parsed=schema.safeParse(data);if(!parsed.success)return NextResponse.json({ok:false,error:'Données invalides'},{status:400});console.log('[IN-VACATION LEAD]',JSON.stringify({...parsed.data,createdAt:new Date().toISOString()}));const webhook=process.env.LEADS_WEBHOOK_URL;if(webhook)await fetch(webhook,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(parsed.data)});return NextResponse.json({ok:true})}catch{return NextResponse.json({ok:false,error:'Erreur serveur'},{status:500})}}
